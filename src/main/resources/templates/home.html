@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 12px;
+        }
+      
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #252529;
+          border: 3px solid transparent;
+          background-clip: padding-box;
+        }
+      
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background-color: #0C0C0D;
+        }
+    </style>
+      
+</head>
+<body class="bg-[#0C0C0D] text-[#FBF9FE] flex justify-center overflow-hidden h-screen">
+    <div id="overlay" class="fixed inset-0 bg-black opacity-60 hidden z-10"></div>
+    <header class="absolute -z-10 flex">
+        <img th:src="@{/images/Cover.png}" alt="" class="object-cover">
+        <img th:src="@{/images/Cover.png}" alt="" class="bg-repeat">
+    </header>
+    <main class="w-[720px] mt-20 flex flex-col gap-10">
+        <h1 class="text-3xl font-bold">Tasks</h1>
+        <div class="w-full flex gap-3 items-end">
+            
+            <div class="flex-1">
+                <p class="text-base text-[#AFABB6]">Task</p>
+                <input type="text" 
+                id="searchTask"
+                class="w-full h-10 bg-[#111112] border-2 border-[#252529] rounded focus:outline-none focus:border-[#4E995E] p-4">
+            </div>
+
+            <div>
+                <p class="text-base text-[#AFABB6]">Status</p>
+                <div class="relative inline-block w-64">
+                    <select class="block w-full appearance-none bg-[#111112] border-2 border-[#252529] text-[#AFABB6] py-2 px-3 pr-8 rounded leading-tight focus:outline-none focus:border-[#4E995E]">
+                      <option>All</option>
+                      <option>In Progress</option>
+                      <option>Completed</option>
+                      <option>Canceled</option>
+                    </select>
+                    <!-- Custom icon -->
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#AFABB6]">
+                      <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 12l-5-5h10l-5 5z"/></svg>
+                    </div>
+                  </div>
+            </div>
+
+            <button id="openModalBtn" class="w-10 h-10 rounded-full bg-[#4E995E] text-3xl flex justify-center items-center">
+                <img th:src="@{/icons/More.svg}" alt="Nova tarefa">
+            </button>
+        </div>
+        <ul id="taskList" class="w-full flex flex-col gap-2 overflow-auto pb-20 overflow-x-hidden h-max custom-scrollbar pr-2">
+            <li th:each="task : ${tasks}"
+                th:id="'task-' + ${task.name.replaceAll(' ', '-')}"
+                th:classappend="${task.status == 'Completed' || task.status == 'Canceled'} ? 'bg-[#111112] border-[#17171A]' : 'bg-[#17171A] border-[#252529]'"
+                class="task h-20 flex items-center gap-4 border-2 rounded-md p-5 relative"
+            >
+                <form th:action="@{/task/{name}/complete(name=${task.name})}" method="post" class="flex-1 inline-flex items-center"
+                >
+                    <!-- checkbox -->
+                    <label class="flex items-center justify-start cursor-pointer relative gap-4">
+                        <input type="checkbox" 
+                            th:classappend="${task.status == 'Canceled'} ? 'border-[#E07B67] checked:bg-[#E07B67] checked:border-[#E07B67]'"
+                            th:checked="${task.status == 'Completed' || task.status == 'Canceled'}"
+                            class="peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border-2 border-[#4E995E] checked:bg-[#4E995E] checked:border-[#4E995E]" 
+                            id="check" 
+                            th:onchange="this.form.submit()"
+                        />
+                        <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-2.5 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1"
+                                th:if="${task.status == 'Canceled'}">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1"
+                                th:unless="${task.status == 'Canceled'}">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </span>
+                        <p th:text="${task.name}" class="flex-1 peer-checked:line-through"></p>
+                    </label>
+
+                </form>
+                
+                <!-- tag -->
+                <span th:text="${task.status}" 
+                    th:switch="${task.status}"
+                    th:classappend="
+                        'p-2 px-4 rounded-full ' + 
+                        (${task.status == 'In Progress'} ? 'bg-[#1A1D23] text-[#7B94CB]' : 
+                        (${task.status == 'Completed'} ? 'bg-[#1C2015] text-[#8CAD51]' : 
+                        (${task.status == 'Canceled'} ? 'bg-[#261A17] text-[#E07B67]' : 
+                        (${task.status == 'Pending'} ? 'bg-[#211E12] text-[#BB9F3A]' : ''))))
+                    ">
+                </span>
+                
+                <!-- Dropdown -->
+                <button class="options-btn relative" th:unless="${task.status == 'Canceled'}">
+                    <img th:src="@{/icons/Options.svg}" alt="">
+                </button>
+            
+                <!-- Dropdown Menu -->
+                <div class="options-dropdown hidden absolute top-14 right-4 mt-2 w-32 bg-[#111112] border border-[#252529] rounded-md shadow-lg z-10">
+                    <ul class="py-1">
+                        <li><button class="block w-full px-4 py-2 text-left text-white hover:bg-[#4E995E]">Edit</button></li>
+                        <li><button class="block w-full px-4 py-2 text-left text-white hover:bg-red-500">Delete</button></li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Message when no tasks found -->
+        <p id="noTasksMessage" class="text-center text-[#AFABB6] hidden">No tasks found matching the search criteria.</p>
+    </main>
+
+     <!-- Modal -->
+    <div id="modal" class="fixed inset-0 flex justify-center items-center hidden z-20">
+        <form 
+            th:action="@{/task}"
+            method="post"
+            class="bg-[#0C0C0D] border-2 border-[#252529] w-[35%] p-6 rounded-lg">
+            <h2 class="text-xl font-bold">New Task</h2>
+            <div class="flex items-center gap-2 my-6">
+            
+            <div class="flex-1">
+                <p class="text-base text-[#AFABB6]">Task name</p>
+                <input 
+                type="text"
+                name="name"
+                required
+                class="w-full h-10 bg-[#111112] border-2 border-[#252529] rounded focus:outline-none focus:border-[#4E995E] p-4"
+                >
+            </div>
+
+            <div>
+                <p class="text-base text-[#AFABB6]">Status</p>
+                <div class="relative inline-block w-64">
+                    <select 
+                        name="status"
+                        class="block w-full appearance-none bg-[#111112] border-2 border-[#252529] text-[#AFABB6] py-2 px-3 pr-8 rounded leading-tight focus:outline-none focus:border-[#4E995E]">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                    <!-- Custom icon -->
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#AFABB6]">
+                      <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 12l-5-5h10l-5 5z"/></svg>
+                    </div>
+                  </div>
+            </div>
+
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" id="closeModalBtn" class="bg-red-500 text-white px-4 py-2 rounded">Close</button>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Seleciona elementos
+        const openModalBtn = document.getElementById('openModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modal = document.getElementById('modal');
+        const overlay = document.getElementById('overlay');
+
+        // Função para abrir o modal
+        openModalBtn.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+            overlay.classList.remove('hidden');
+        });
+
+        // Função para fechar o modal
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            overlay.classList.add('hidden');
+        });
+
+        // Fecha o modal ao clicar no overlay
+        overlay.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            overlay.classList.add('hidden');
+        });
+    </script>
+
+    <script>
+        // Seleciona todos os botões de opções
+        const optionButtons = document.querySelectorAll('.options-btn');
+
+        optionButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                // Impede o evento de propagação, para não fechar imediatamente
+                e.stopPropagation();
+
+                // Encontra o dropdown correspondente
+                const dropdown = button.nextElementSibling;
+
+                // Verifica se o dropdown já está visível
+                const isDropdownVisible = !dropdown.classList.contains('hidden');
+
+                // Fecha todos os dropdowns abertos
+                document.querySelectorAll('.options-dropdown').forEach(d => {
+                    d.classList.add('hidden');
+                });
+
+                // Se o dropdown estava fechado, abre-o; se estava aberto, fecha-o
+                if (!isDropdownVisible) {
+                    dropdown.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Fecha o dropdown ao clicar fora dele
+        window.addEventListener('click', () => {
+            document.querySelectorAll('.options-dropdown').forEach(dropdown => {
+                dropdown.classList.add('hidden');
+            });
+        });
+    </script>
+
+    <script>
+        document.getElementById('searchTask').addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const tasks = document.querySelectorAll('.task');
+            let foundVisible = false;
+
+            tasks.forEach(task => {
+                const taskName = task.querySelector('p').textContent.toLowerCase();
+                if (taskName.includes(filter)) {
+                    task.style.display = 'flex'; // Mostra a tarefa
+                    foundVisible = true;
+                } else {
+                    task.style.display = 'none'; // Esconde a tarefa
+                }
+            });
+
+            // Show or hide the message based on visibility of tasks
+            const noTasksMessage = document.getElementById('noTasksMessage');
+            if (!foundVisible) {
+                noTasksMessage.classList.remove('hidden'); // Show message
+            } else {
+                noTasksMessage.classList.add('hidden');    // Hide message
+            }
+        });
+    </script>
+</body>
+</html>
