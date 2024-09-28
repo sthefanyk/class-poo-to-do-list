@@ -58,7 +58,7 @@
             <li th:each="task : ${tasks}"
                 th:id="${task.id.toString()}"
                 th:data-task-id="${task.id.toString()}"
-                th:classappend="${task.status == 'Completed' || task.status == 'Canceled'} ? 'bg-[#111112] border-[#17171A]' : 'bg-[#17171A] border-[#252529]'"
+                th:classappend="${task.status.toString() == 'Completed' || task.status.toString() == 'Canceled'} ? 'bg-[#111112] border-[#17171A]' : 'bg-[#17171A] border-[#252529]'"
                 class="task h-20 flex items-center gap-4 border-2 rounded-md p-5 relative"
             >
                 <!-- Task Checkbox & Name -->
@@ -69,19 +69,19 @@
                 >
                     <label class="flex items-center justify-start cursor-pointer relative gap-4">
                         <input type="checkbox" 
-                            th:classappend="${task.status == 'Canceled'} ? 'border-[#E07B67] checked:bg-[#E07B67] checked:border-[#E07B67]'"
-                            th:checked="${task.status == 'Completed' || task.status == 'Canceled'}"
+                            th:classappend="${task.status.toString() == 'Canceled'} ? 'border-[#E07B67] checked:bg-[#E07B67] checked:border-[#E07B67]'"
+                            th:checked="${task.status.toString() == 'Completed' || task.status == 'Canceled'}"
                             class="peer h-5 w-5 cursor-pointer transition-all appearance-none rounded shadow hover:shadow-md border-2 border-[#4E995E] checked:bg-[#4E995E] checked:border-[#4E995E]" 
                             id="check" 
                             th:onchange="this.form.submit()"
                         />
                         <span class="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-2.5 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1"
-                                th:if="${task.status == 'Canceled'}">
+                                th:if="${task.status.toString() == 'Canceled'}">
                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                             </svg>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" stroke-width="1"
-                                th:unless="${task.status == 'Canceled'}">
+                                th:unless="${task.status.toString() == 'Canceled'}">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                             </svg>
                         </span>
@@ -94,13 +94,13 @@
                 <span 
                     id="tag"
                     th:text="${task.status}" 
-                    th:switch="${task.status}"
+                    th:switch="${task.status.toString()}"
                     th:classappend="
                         'p-2 px-4 rounded-full ' + 
-                        (${task.status == 'In Progress'} ? 'bg-[#1A1D23] text-[#7B94CB]' : 
-                        (${task.status == 'Completed'} ? 'bg-[#1C2015] text-[#8CAD51]' : 
-                        (${task.status == 'Canceled'} ? 'bg-[#261A17] text-[#E07B67]' : 
-                        (${task.status == 'Pending'} ? 'bg-[#211E12] text-[#BB9F3A]' : ''))))
+                        (${task.status.toString() == 'In Progress'} ? 'bg-[#1A1D23] text-[#7B94CB]' : 
+                        (${task.status.toString() == 'Completed'} ? 'bg-[#1C2015] text-[#8CAD51]' : 
+                        (${task.status.toString() == 'Canceled'} ? 'bg-[#261A17] text-[#E07B67]' : 
+                        (${task.status.toString() == 'Pending'} ? 'bg-[#211E12] text-[#BB9F3A]' : ''))))
                     ">
                 </span>
                 
